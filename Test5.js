@@ -1,134 +1,27 @@
-import { StyleSheet, Text, View, Button, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Button, TextInput, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import { useState } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Icon } from '@rneui/themed';
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { MyMapComponent } from './Map';
+import Card from './Card';
+import { Test } from './Map';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 
-
-const Stack = createStackNavigator(); // Initialize Stack navigator outside the component
-const TopNav = createMaterialTopTabNavigator();
 const Tabs = createBottomTabNavigator();
 
-const Screen1 = () => (
-    <View style={[styles.container, null]}>
-        {/* <Text>Screen 1</Text> */}
-        <SearchBar />
-        <Test2/>
-        <MyMapComponent />
-        {/* <View style={{width: 10, height: 10, backgroundColor:"red", position:'absolute'}}/> */}
-    </View>
-)
-
-const Box = ({ boxKey, activeNumber, setActiveNumber }) => {
-    const [color, setColor] = useState("green")
-
-    const colorChange = () => {
-        setActiveNumber(boxKey)
-        // boxKey == activeNumber ? setColor("red") : setColor("green")
-        // color == "red" ? setColor("green") : setColor("red") 
-        console.log(activeNumber)
-    }
-    return (
-        <TouchableOpacity onPress={() => colorChange()} style={{ width: 50, height: 50, margin: 5, backgroundColor: activeNumber == boxKey ? "red" : "green" }} />
-    )
-}
-
-const screens = ["Screen 1", "Screen 2", "Screen 3"]
-
-const Test2 = () => {
-    const [activeScreen, setActiveScreen] = useState(screens[0])
-    return (
-        <View style={[styles.bottomBorder, { flexDirection: "row", width: "100%", justifyContent: "space-evenly" }]}>
-            {screens.map((screen, index) => (
-                <TouchableOpacity
-                    onPress={() => setActiveScreen(screen)}>
-                    <Text style={{
-                        color: 'black',
-                        fontSize: 16,
-                        fontWeight: activeScreen == screen ? '550' : '400',
-                        paddingHorizontal: 20,
-                        paddingVertical: 20,
-                        backgroundColor: activeScreen == screen ? '#313131' : 'white',
-                        borderRadius: 19,
-                        color: activeScreen == screen ? "white" : "#C5C5C5",
-                        shadowColor: activeScreen == screen ? '#171717' : 'transparent',
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.34,
-                        shadowRadius: 13,
-                    }}>
-                        {screen}
-                    </Text>
-
-                </TouchableOpacity>
-            ))}
-        </View>
-    )
-}
-
-const Screen2 = () => {
-    const [activeNumber, setActiveNumber] = useState()
-    const boxes = []
-
-    for (var i = 0; i < 3; i++) {
-        boxes.push(
-            <Box key={i} boxKey={i} setActiveNumber={setActiveNumber} activeNumber={activeNumber} />
-        )
-    }
-    return (
-        <View style={styles.container}>
-            {/* <Text>Screen 2</Text> */}
-
-            {/* <View style={{flexDirection: "row" }}>
-                {boxes} 
-            </View> */}
-            <Test2 />
-            {/* <Text>{activeNumber}</Text> */}
-        </View>
-
-    )
-}
-
-const Screen3 = () => {
-    const [color, setColor] = useState("yellow");
-
-    const changeColor = () => {
-        setColor((color === "yellow" ? "red" : "yellow"));
-    };
-
-    return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <Text>Screen 3</Text>
-            <Button onPress={changeColor} title="Change Color" />
-            <View style={{ width: 30, height: 30, backgroundColor: color }} />
-        </View>
-    );
-};
-
-const Screen4 = () => (
-    <View style={{ flex: 1 }}>
-        <SearchBar />
-        <View style={styles.container}>
-            <Text>Screen 4</Text>
-        </View>
-    </View>
-)
 const SearchBar = () => {
+
     const test1 = "blue"
-
     const [borderWidth, setBorderWidth] = useState(0)
-
     const test = StyleSheet.create({
         searchBorder: {
             borderWidth: borderWidth
         }
     })
     return (
-        <View style={{ flexDirection: "row", backgroundColor: "white", padding: 20, alignItems: "center", width:"100%"}}>
-
+        <View style={{ flexDirection: "row", backgroundColor: "white", padding: 20, alignItems: "center", width: "100%" }}>
             <Icon
                 name='code-of-conduct'
                 type='octicon'
@@ -137,8 +30,97 @@ const SearchBar = () => {
                 style={{ marginRight: 10 }}
             />
             <View style={[{ flex: 1, flexDirection: "row", backgroundColor: "#F0F0F0", borderRadius: 18, alignItems: "center" }, test.searchBorder]}>
-                <TextInput style={{ flex: 1, backgroundColor: null, padding: 16 }} placeholder="" placeholderTextColor={"#C5C5C5"} onFocus={() => setBorderWidth(3)} onBlur={() => setBorderWidth(0)} />
+                <TextInput style={{ flex: 1, backgroundColor: null, padding: 16 }} placeholder="Search" placeholderTextColor={"#C5C5C5"} onFocus={() => setBorderWidth(3)} onBlur={() => setBorderWidth(0)} />
             </View>
+        </View>
+    )
+}
+
+const screens = Object.keys(Test)
+
+const InterestsGroups = ({ activeScreen, setActiveScreen }) => {
+    return (
+        <SafeAreaView>
+            <ScrollView style={[styles.bottomBorder, { backgroundColor: "white", paddingHorizontal: 10 }]} horizontal showsHorizontalScrollIndicator={false}>
+                {screens.map((screen, index) => (
+                    <TouchableOpacity
+                        onPress={() => setActiveScreen(screen)}>
+                        <Text style={{
+                            color: 'black',
+                            fontSize: 16,
+                            fontWeight: activeScreen == screen ? '550' : '400',
+                            paddingHorizontal: 20,
+                            paddingVertical: 20,
+                            backgroundColor: activeScreen == screen ? '#313131' : 'white',
+                            borderRadius: 19,
+                            color: activeScreen == screen ? "white" : "#C5C5C5",
+                            shadowColor: activeScreen == screen ? '#171717' : 'transparent',
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.34,
+                            shadowRadius: 13,
+                            marginHorizontal: 5
+                        }}>
+                            {screen}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
+        </SafeAreaView>
+    )
+}
+
+const Explore = () => {
+    const [activeScreen, setActiveScreen] = useState(screens[0])
+
+    return (
+        <View style={[styles.container, { justifyContent: 'flex-end' }]}>
+            <SearchBar />
+            <InterestsGroups activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
+            <View style={{flexGrow:1, alignItems:"center", justifyContent:"flex-end"}}>
+                <MyMapComponent activeScreen={activeScreen} style={{ paddingTop: 500 }} />
+                <Card />
+            </View>
+        </View>
+    )
+}
+
+const Favorites = () => {
+    return (
+        <View>
+            <ScrollMenu />
+        </View>
+    )
+};
+
+const ScrollMenu = () => {
+    const activeScreen = "Technology"
+    return (
+
+        <SafeAreaView>
+            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+
+                <View style={{ width: 100, height: 100, backgroundColor: "red", margin: 10 }} />
+                <View style={{ width: 100, height: 100, backgroundColor: "red", margin: 10 }} />
+                <View style={{ width: 100, height: 100, backgroundColor: "red", margin: 10 }} />
+                <View style={{ width: 100, height: 100, backgroundColor: "red", margin: 10 }} />
+
+            </ScrollView>
+        </SafeAreaView>
+    )
+}
+
+const History = () => {
+    return (
+        <View style={styles.container}>
+            <Text>History</Text>
+        </View>
+    )
+}
+
+const Profile = () => {
+    return (
+        <View style={styles.container}>
+            <Text>Profile</Text>
         </View>
     )
 }
@@ -148,26 +130,26 @@ export function Test5() {
         <NavigationContainer>
             <Tabs.Navigator screenOptions={{
                 headerShown: false, tabBarActiveTintColor: "black", tabBarInactiveTintColor: "black",
-                tabBarShowLabel: false
+                tabBarShowLabel: false, tabBarStyle: { backgroundColor: "white", height: 65, paddingVertical: "auto" }, tabBarIconStyle: { marginVertical: "auto" }
             }}>
-                <Stack.Screen name="Top Tab" component={Screen1} options={{
+                <Tabs.Screen name="Explore" component={Explore} options={{
                     tabBarIcon: ({ focused, color, size }) => (
                         <Icon name={focused ? "location" : "location"} color={color} type="octicon" size={24} />
                     )
                 }} />
-                <Stack.Screen name="Name" component={Screen4} options={{
+                <Tabs.Screen name="Favorites" component={Favorites} options={{
                     tabBarIcon: ({ focused, color, size }) => (
-                        <Icon name={focused ? "pin" : "pin"} color={color} type="octicon" size={24} />
+                        <Icon name={focused ? "heart-fill" : "heart"} color={color} type="octicon" size={24} />
                     )
                 }} />
-                <Stack.Screen name="Place" component={Screen2} options={{
+                <Tabs.Screen name="History" component={History} options={{
                     tabBarIcon: ({ focused, color, size }) => (
                         <Icon name={focused ? "history" : "history"} color={color} type="octicon" size={24} />
                     )
                 }} />
-                <Stack.Screen name="Person" component={Screen3} options={{
+                <Tabs.Screen name="Profile" component={Profile} options={{
                     tabBarIcon: ({ focused, color, size }) => (
-                        <Icon name={focused ? "person" : "person"} color={color} type="ionicon" size={24} />
+                        <Icon name={focused ? "person-fill" : "person"} color={color} type="octicon" size={24} />
                     )
                 }} />
             </Tabs.Navigator>
@@ -177,17 +159,17 @@ export function Test5() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
+        flexGrow: 1,
+        // justifyContent: "center",
+        // alignItems: "center",
         backgroundColor: "white"
     },
     bottomBorder: {
         backgroundColor: 'white', // Tab bar background
         borderBottomWidth: 1, // Thickness of the bottom border
-        borderBottomColor: 'rgba(0,0,0,.13)', 
-        elevation: 5, 
-        paddingVertical:10
-        
+        borderBottomColor: 'rgba(0,0,0,.13)',
+        elevation: 5,
+        paddingVertical: 10
+
     }
 })

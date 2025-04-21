@@ -1,4 +1,5 @@
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { useEffect } from 'react';
 
 const containerStyle = {
     width: '100%',
@@ -9,6 +10,32 @@ const center = {
     lat: 41.876465,
     lng: -87.621887
 };
+
+const markers = [
+    { id: 1, lat: 37.7749, lng: -122.4194, title: 'San Francisco' },  // Marker 1
+    { id: 2, lat: 34.0522, lng: -118.2437, title: 'Los Angeles' },    // Marker 2
+    { id: 3, lat: 40.7128, lng: -74.0060, title: 'New York' },         // Marker 3
+];
+
+const chicagoMarkers1 = [
+    { id: 1, lat: 41.8781, lng: -87.6298, title: 'Chicago - Downtown' },
+    { id: 2, lat: 41.8925, lng: -87.6269, title: 'Chicago - River North' },
+    { id: 3, lat: 41.8675, lng: -87.6156, title: 'Chicago - Museum Campus' }
+];
+
+const chicagoMarkers2 = [
+    { id: 1, lat: 41.9002, lng: -87.6237, title: 'Chicago - Gold Coast' },
+    { id: 2, lat: 41.8827, lng: -87.6233, title: 'Chicago - Millennium Park' },
+    { id: 3, lat: 41.8495, lng: -87.6843, title: 'Chicago - Pilsen' }
+];
+
+const chicagoMarkers3 = [
+    { id: 1, lat: 41.8802, lng: -87.6245, title: 'Chicago - Loop 1' },
+    { id: 2, lat: 41.8829, lng: -87.6291, title: 'Chicago - Loop 2' },
+    { id: 3, lat: 41.8794, lng: -87.6228, title: 'Chicago - Loop 3' },
+];
+
+export const Test = {"Technology": chicagoMarkers1, "Music": chicagoMarkers2, "Politics": chicagoMarkers3, "Science": chicagoMarkers2, "Pop Culture": chicagoMarkers1}
 
 const uberMapStyle = [
     { elementType: "geometry", stylers: [{ color: "#212121" }] },
@@ -61,8 +88,6 @@ const sample = [
     { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] }, // Gentle contrast
     { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
     { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] }, // Darker but visible roads
-    // { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#B6B6B6" }] }, 
-    // { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#909C9D" }] }, 
     { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
     { featureType: "water", elementType: "geometry", stylers: [{ color: "#90c7cc" }] }, // Slightly deeper blue
     { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#547aa5" }] },
@@ -70,14 +95,30 @@ const sample = [
     { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#abd4a8" }] }, // Softer parks
 ];
 
+const options = {
+    mapTypeControl: false,
+    cameraControl: false,
+    fullscreenControl: false,
+    colorScheme: "LIGHT",
+    streetViewControl: false,
+    zoomControl: false,
+    styles: sample,
+    attributionControl: false, 
+    keyboardShortcuts: false,
+}
 
-export function MyMapComponent() {
+export function MyMapComponent({activeScreen}) {
     return (
         <LoadScript googleMapsApiKey="AIzaSyBD11y3Ha4fFbOypMBYSYJxJHY0baFo5MA">
-            {/* <View style={{ width: 10, height: 20, backgroundColor: "red" }} /> */}
-            <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={11} options={{ mapTypeControl: false, fullscreenControl: false, colorScheme: "LIGHT", streetViewControl: false, zoomControl: false, styles: sample }}>
+            <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={14} options={options}>
 
                 <Marker position={center} />
+
+                {
+                    Test[activeScreen].map((marker, index) => (
+                        <Marker onClick = {()=>console.log("this is a test")} key={index} position={{ lat: marker.lat, lng: marker.lng }} />
+                    ))
+                }
             </GoogleMap>
         </LoadScript>
     );
