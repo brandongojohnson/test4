@@ -1,5 +1,7 @@
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
-import { useEffect } from 'react';
+import { GoogleMap, LoadScript, Marker, OverlayView } from '@react-google-maps/api';
+import { useEffect, useState } from 'react';
+import { View, StyleSheet, Image, Text } from 'react-native';
+import { Icon } from '@rneui/themed';
 
 const containerStyle = {
     width: '100%',
@@ -17,25 +19,69 @@ const markers = [
     { id: 3, lat: 40.7128, lng: -74.0060, title: 'New York' },         // Marker 3
 ];
 
-const chicagoMarkers1 = [
-    { id: 1, lat: 41.8781, lng: -87.6298, title: 'Chicago - Downtown' },
-    { id: 2, lat: 41.8925, lng: -87.6269, title: 'Chicago - River North' },
-    { id: 3, lat: 41.8675, lng: -87.6156, title: 'Chicago - Museum Campus' }
-];
+// Helper function to generate random prices
+const generateRandomPrice = () => {
+    return Math.floor(Math.random() * (2000 - 800 + 1) + 800);
+};
 
-const chicagoMarkers2 = [
-    { id: 1, lat: 41.9002, lng: -87.6237, title: 'Chicago - Gold Coast' },
-    { id: 2, lat: 41.8827, lng: -87.6233, title: 'Chicago - Millennium Park' },
-    { id: 3, lat: 41.8495, lng: -87.6843, title: 'Chicago - Pilsen' }
-];
+// Custom Price Marker Component
+const PriceMarker = ({ price, isSelected }) => {
+    return (
+        <div style={{
+            background: isSelected ? '#000000' : '#313131',
+            padding: '8px 0px',
+            borderRadius: '10px',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            boxShadow: '0 10px 10px rgba(0,0,0,0.2)',
+            // border: '2px solid white',
+            transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+            transition: 'all 0.2s ease-in-out',
+            cursor: 'pointer',
+            minWidth: '80px',
+            textAlign: 'center',
+        }}>
+            ${price}
+        </div>
+    );
+};
 
-const chicagoMarkers3 = [
-    { id: 1, lat: 41.8802, lng: -87.6245, title: 'Chicago - Loop 1' },
-    { id: 2, lat: 41.8829, lng: -87.6291, title: 'Chicago - Loop 2' },
-    { id: 3, lat: 41.8794, lng: -87.6228, title: 'Chicago - Loop 3' },
-];
+// Update the marker data with prices
+const updateMarkersWithPrices = (markers) => {
+    return markers.map(marker => ({
+        ...marker,
+        price: generateRandomPrice()
+    }));
+};
 
-export const Test = {"Technology": chicagoMarkers1, "Music": chicagoMarkers2, "Politics": chicagoMarkers3, "Science": chicagoMarkers2, "Pop Culture": chicagoMarkers1}
+const chicagoMarkers1 = updateMarkersWithPrices([
+    { id: "tech1", lat: 41.8781, lng: -87.6298, title: 'Chicago - Downtown' },
+    { id: "tech2", lat: 41.8925, lng: -87.6269, title: 'Chicago - River North' },
+    { id: "tech3", lat: 41.8675, lng: -87.6156, title: 'Chicago - Museum Campus' }
+]);
+
+const chicagoMarkers2 = updateMarkersWithPrices([
+    { id: "music1", lat: 41.9002, lng: -87.6237, title: 'Chicago - Gold Coast' },
+    { id: "music2", lat: 41.8827, lng: -87.6233, title: 'Chicago - Millennium Park' },
+    { id: "music3", lat: 41.8495, lng: -87.6843, title: 'Chicago - Pilsen' }
+]);
+
+const chicagoMarkers3 = updateMarkersWithPrices([
+    { id: "pol1", lat: 41.8802, lng: -87.6245, title: 'Chicago - Loop 1' },
+    { id: "pol2", lat: 41.8829, lng: -87.6291, title: 'Chicago - Loop 2' },
+    { id: "pol3", lat: 41.8794, lng: -87.6228, title: 'Chicago - Loop 3' }
+]);
+
+export const Test = {
+    Technology: chicagoMarkers1,
+    Music: chicagoMarkers2,
+    Politics: chicagoMarkers3,
+    Science: chicagoMarkers2,
+    "Pop Culture": chicagoMarkers1
+};
+
+export const categoryNames = Object.keys(Test);
 
 const uberMapStyle = [
     { elementType: "geometry", stylers: [{ color: "#212121" }] },
@@ -107,19 +153,92 @@ const options = {
     keyboardShortcuts: false,
 }
 
+// Custom marker icon configuration
+const customMarker = {
+    path: "M12 0C7.58 0 4 3.58 4 8c0 5.25 7 13 7 13s7-7.75 7-13c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z", // This is the Google Maps pin SVG path
+    fillColor: "#313131", // Match your app's theme color
+    fillOpacity: 1,
+    strokeWeight: 1,
+    strokeColor: "#FFFFFF",
+    scale: 1.5,
+    anchor: { x: 12, y: 24 },
+    labelOrigin: { x: 12, y: 12 }
+};
+
+// Active marker style (when selected or hovered)
+const activeMarker = {
+    
+    fillColor: "#000000",
+    scale: 1.8,
+};
+
+
+
 export function MyMapComponent({activeScreen}) {
+    const [selectedMarker, setSelectedMarker] = useState(null);
+
     return (
-        <LoadScript googleMapsApiKey="AIzaSyBD11y3Ha4fFbOypMBYSYJxJHY0baFo5MA">
-            <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={14} options={options}>
-
-                <Marker position={center} />
-
-                {
-                    Test[activeScreen].map((marker, index) => (
-                        <Marker onClick = {()=>console.log("this is a test")} key={index} position={{ lat: marker.lat, lng: marker.lng }} />
-                    ))
-                }
-            </GoogleMap>
-        </LoadScript>
+        <View style={styles.mapWrapper}>
+            <LoadScript googleMapsApiKey="AIzaSyBD11y3Ha4fFbOypMBYSYJxJHY0baFo5MA">
+                <GoogleMap 
+                    mapContainerStyle={containerStyle} 
+                    center={center} 
+                    zoom={14} 
+                    options={{
+                        ...options,
+                        // Disable default POI markers to avoid cluttering
+                        styles: [
+                            ...sample,
+                            {
+                                featureType: "poi",
+                                elementType: "labels",
+                                stylers: [{ visibility: "off" }]
+                            }
+                        ]
+                    }}
+                >
+                   
+                    {Test[activeScreen]?.map((marker) => (
+                        <OverlayView
+                            key={marker.id}
+                            position={{ lat: marker.lat, lng: marker.lng }}
+                            mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                            getPixelPositionOffset={(width, height) => ({
+                                x: -(width / 2),
+                                y: -(height + 10)
+                            })}
+                        >
+                            <div
+                                onClick={() => {
+                                    setSelectedMarker(marker.id);
+                                    console.log("Marker clicked:", marker.title);
+                                }}
+                            >
+                                <PriceMarker 
+                                    price={marker.price}
+                                    isSelected={selectedMarker === marker.id}
+                                />
+                            </div>
+                        </OverlayView>
+                    ))}
+                </GoogleMap>
+            </LoadScript>
+        </View>
     );
 }
+
+// Alternative: If you want to use an image instead of SVG
+const imageMarker = {
+    url: 'https://your-custom-marker-image.png', // Replace with your image URL
+    scaledSize: { width: 40, height: 40 }, // Adjust size as needed
+    origin: { x: 0, y: 0 },
+    anchor: { x: 20, y: 40 }
+};
+
+const styles = StyleSheet.create({
+    mapWrapper: {
+        width: '100%',
+        height: '100%',
+        position: 'relative'
+    }
+});
