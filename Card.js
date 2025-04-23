@@ -16,10 +16,7 @@ const Card = ({ thumbnail, title, description }) => {
       })}
     >
       <View style={styles.cardContent}>
-        <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1480796927426-f609979314bd' }} 
-          style={styles.thumbnail} 
-        />
+        <View style={styles.thumbnail} />
         <View style={styles.textContainer}>
           <Text style={styles.title}>Mount Fuji, <Text style={styles.subtitle}>Tokyo</Text></Text>
           <Text style={styles.description}>Tokyo, Japan</Text>
