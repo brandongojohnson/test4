@@ -1,6 +1,6 @@
 import { GoogleMap, LoadScript, Marker, OverlayView } from '@react-google-maps/api';
-import { useEffect, useState } from 'react';
-import { View, StyleSheet, Image, Text } from 'react-native';
+import { useEffect, useState, useMemo } from 'react';
+import { View, StyleSheet, Image, Text, TouchableOpacity, FlatList } from 'react-native';
 import { Icon } from '@rneui/themed';
 
 const containerStyle = {
@@ -172,57 +172,124 @@ const activeMarker = {
     scale: 1.8,
 };
 
+// List Item Component
+const ListItem = ({ item, onPress, isSelected }) => {
+    return (
+        <TouchableOpacity 
+            style={[styles.listItem, isSelected && styles.selectedListItem]}
+            onPress={() => onPress(item.id)}
+        >
+            <View style={styles.listItemContent}>
+                <View style={styles.listItemLeft}>
+                    <Text style={styles.listItemPrice}>${item.price}</Text>
+                    <Text style={styles.listItemTitle}>{item.title}</Text>
+                </View>
+                <Icon
+                    name={isSelected ? 'heart-fill' : 'heart'}
+                    type="octicon"
+                    color={isSelected ? '#000' : '#666'}
+                    size={24}
+                />
+            </View>
+        </TouchableOpacity>
+    );
+};
 
+// ViewToggle Component
+const ViewToggle = ({ isMapView, onToggle }) => {
+    return (
+        <TouchableOpacity 
+            style={styles.toggleButton}
+            onPress={onToggle}
+        >
+            <Icon
+                name={isMapView ? 'list-unordered' : 'location'}
+                type="octicon"
+                color="#000"
+                size={24}
+            />
+        </TouchableOpacity>
+    );
+};
 
 export function MyMapComponent({activeScreen}) {
     const [selectedMarker, setSelectedMarker] = useState(null);
+    const [isMapView, setIsMapView] = useState(true);
+    
+    const currentMarkers = useMemo(() => {
+        return Test[activeScreen] || [];
+    }, [activeScreen]);
+
+    const mapOptions = useMemo(() => ({
+        disableDefaultUI: false,
+        zoomControl: true,
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: false,
+        styles: [
+            {
+                featureType: "poi",
+                elementType: "labels",
+                stylers: [{ visibility: "off" }]
+            }
+        ]
+    }), []);
+
+    const renderMap = () => (
+        <LoadScript googleMapsApiKey="AIzaSyBD11y3Ha4fFbOypMBYSYJxJHY0baFo5MA">
+            <GoogleMap 
+                mapContainerStyle={containerStyle} 
+                center={center} 
+                zoom={14} 
+                options={mapOptions}
+            >
+                {currentMarkers.map((marker) => (
+                    <OverlayView
+                        key={marker.id}
+                        position={{ lat: marker.lat, lng: marker.lng }}
+                        mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                        getPixelPositionOffset={(width, height) => ({
+                            x: -(width / 2),
+                            y: -(height + 10)
+                        })}
+                    >
+                        <div onClick={() => setSelectedMarker(marker.id)}>
+                            <PriceMarker 
+                                price={marker.price}
+                                isSelected={selectedMarker === marker.id}
+                            />
+                        </div>
+                    </OverlayView>
+                ))}
+            </GoogleMap>
+        </LoadScript>
+    );
+
+    const renderList = () => (
+        <FlatList
+            data={currentMarkers}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+                <ListItem
+                    item={item}
+                    onPress={setSelectedMarker}
+                    isSelected={selectedMarker === item.id}
+                />
+            )}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+        />
+    );
 
     return (
-        <View style={styles.mapWrapper}>
-            <LoadScript googleMapsApiKey="AIzaSyBD11y3Ha4fFbOypMBYSYJxJHY0baFo5MA">
-                <GoogleMap 
-                    mapContainerStyle={containerStyle} 
-                    center={center} 
-                    zoom={14} 
-                    options={{
-                        ...options,
-                        // Disable default POI markers to avoid cluttering
-                        styles: [
-                            ...sample,
-                            {
-                                featureType: "poi",
-                                elementType: "labels",
-                                stylers: [{ visibility: "off" }]
-                            }
-                        ]
-                    }}
-                >
-                   
-                    {Test[activeScreen]?.map((marker) => (
-                        <OverlayView
-                            key={marker.id}
-                            position={{ lat: marker.lat, lng: marker.lng }}
-                            mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-                            getPixelPositionOffset={(width, height) => ({
-                                x: -(width / 2),
-                                y: -(height + 10)
-                            })}
-                        >
-                            <div
-                                onClick={() => {
-                                    setSelectedMarker(marker.id);
-                                    console.log("Marker clicked:", marker.title);
-                                }}
-                            >
-                                <PriceMarker 
-                                    price={marker.price}
-                                    isSelected={selectedMarker === marker.id}
-                                />
-                            </div>
-                        </OverlayView>
-                    ))}
-                </GoogleMap>
-            </LoadScript>
+        <View style={styles.container}>
+            <ViewToggle 
+                isMapView={isMapView} 
+                onToggle={() => setIsMapView(!isMapView)} 
+            />
+            <View style={styles.contentContainer}>
+                {isMapView ? renderMap() : renderList()}
+            </View>
         </View>
     );
 }
@@ -236,9 +303,76 @@ const imageMarker = {
 };
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+    },
+    contentContainer: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+    },
+    toggleButton: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        backgroundColor: 'white',
+        borderRadius: 8,
+        padding: 12,
+        zIndex: 1,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    listContainer: {
+        padding: 16,
+    },
+    listItem: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3.84,
+        elevation: 3,
+    },
+    selectedListItem: {
+        backgroundColor: '#f8f8f8',
+        borderWidth: 1,
+        borderColor: '#000',
+    },
+    listItemContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    listItemLeft: {
+        flex: 1,
+    },
+    listItemPrice: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 4,
+    },
+    listItemTitle: {
+        fontSize: 16,
+        color: '#666',
+    },
     mapWrapper: {
         width: '100%',
         height: '100%',
-        position: 'relative'
-    }
+        position: 'relative',
+    },
 });

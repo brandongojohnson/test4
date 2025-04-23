@@ -105,17 +105,18 @@ const InterestsGroups = ({ activeScreen, setActiveScreen }) => {
 
 const Explore = () => {
     const [activeScreen, setActiveScreen] = useState(screens[0]);
-
-    console.log('Current activeScreen:', activeScreen);
-    console.log('Available screens:', screens);
+    const [isMapView, setIsMapView] = useState(true);
 
     return (
-        <View style={[styles.container, { justifyContent: 'flex-end' }]}>
+        <View style={styles.container}>
             <SearchBar />
             <InterestsGroups activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
-            <View style={{ flexGrow: 1, alignItems: "center", justifyContent: "flex-end" }}>
-                <MyMapComponent activeScreen={activeScreen} style={{ paddingTop: 500 }} />
-                <Card />
+            <View style={styles.mapContainer}>
+                <MyMapComponent 
+                    activeScreen={activeScreen}
+                    onViewToggle={setIsMapView}
+                />
+                <Card isMapView={isMapView} />
             </View>
         </View>
     );

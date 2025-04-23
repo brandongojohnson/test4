@@ -2,18 +2,24 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-const Card = ({ thumbnail, title, description }) => {
+const Card = ({ title, description, isMapView }) => {
   const navigation = useNavigation();
   
+  if (!isMapView) return null; // Don't show card in list view
+
+  const handlePress = () => {
+    navigation.navigate('Detail', {
+      location: {
+        title: 'Mount Fuji',
+        location: 'Tokyo, Japan'
+      }
+    });
+  };
+
   return (
     <TouchableOpacity 
       style={styles.card}
-      onPress={() => navigation.navigate('Detail', {
-        location: {
-          title: 'Mount Fuji',
-          location: 'Tokyo, Japan'
-        }
-      })}
+      onPress={handlePress}
     >
       <View style={styles.cardContent}>
         <View style={styles.thumbnail} />
