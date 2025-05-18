@@ -11,9 +11,13 @@ import DetailPage from './DetailPage';
 
 import db from './firebase';
 import { ref, onValue, set, push } from 'firebase/database';
+import { ReadData } from './ReadData';
+import MyMapComponent2 from './Map2';
+
 
 const Stack = createStackNavigator();
 const Tabs = createBottomTabNavigator();
+
 
 const SearchBar = () => {
     const [borderWidth, setBorderWidth] = useState(0);
@@ -100,25 +104,6 @@ const InterestsGroups = ({ activeScreen, setActiveScreen }) => {
                 })}
             </ScrollView>
         </SafeAreaView>
-    );
-};
-
-const Explore = () => {
-    const [activeScreen, setActiveScreen] = useState(screens[0]);
-    const [isMapView, setIsMapView] = useState(true);
-
-    return (
-        <View style={styles.container}>
-            <SearchBar />
-            <InterestsGroups activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
-            <View style={styles.mapContainer}>
-                <MyMapComponent 
-                    activeScreen={activeScreen}
-                    onViewToggle={setIsMapView}
-                />
-                <Card isMapView={isMapView} />
-            </View>
-        </View>
     );
 };
 
@@ -211,81 +196,83 @@ const Favorites = () => {
     );
 };
 
-const testInfo = (data) => {
-
-    const testInfoRef = ref(db, 'Categories' + "/Technology");
-    push(testInfoRef, data)
-    console.log("testing click")
-}
-
-const dummyData = {
-    "name": "First Controlled Nuclear Reaction",
-    "year": 1942,
-    "location": {
-        "description": "Site of Chicago Pile-1, beneath the west stands of Stagg Field at the University of Chicago",
-        "modern_address": "5630 S. Ellis Avenue, Chicago, IL 60637",
-        "current_site": "Henry Moore's 'Nuclear Energy' sculpture, now part of the Regenstein Library complex"
-    }
-}
-
-const dummyData1 = {
-    "name": "Home Insurance Building",
-    "year": 1885,
-    "location": {
-        "original_location": "Northeast corner of LaSalle and Adams Streets in Chicago's Loop",
-        "address": "135 S. LaSalle Street, Chicago, IL 60603",
-        "note": "The original building was demolished in 1931; the Field Building (now LaSalle Bank Building) currently occupies the site"
-    }
-}
-
-
-const dummyData2 = {
-    "name": "Chicago Network Access Point",
-    "year": 1990,
-    "location": {
-        "primary_location": "The Lakeside Technology Center data center",
-        "address": "350 E. Cermak Road, Chicago, IL 60616",
-        "note": "Former R.R. Donnelley printing plant, now a major internet exchange point"
-    }
-}
-
-const History = () => {
+const History = ({ route }) => {
+    const { data } = route.params;
     return (
         <View style={styles.container}>
-            <TouchableOpacity onPress={() => testInfo(dummyData)} style={{ backgroundColor: 'red', padding: 10, borderRadius: 10 }}>
-                <Text>Testing</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => testInfo(dummyData1)} style={{ backgroundColor: 'red', padding: 10, borderRadius: 10 }}>
-                <Text>Testing2</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => testInfo(dummyData2)} style={{ backgroundColor: 'red', padding: 10, borderRadius: 10 }}>
-                <Text>Testing3</Text>
-            </TouchableOpacity>
             <Text>History</Text>
         </View>
     )
 }
 
-const Profile = () => {
-    return (
-        <View style={styles.container}>
-            <Text>Profile</Text>
-        </View>
-    )
-}
-
-// Create ExploreStack component
-const ExploreStack = () => {
-    return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="ExploreMain" component={Explore} />
-            <Stack.Screen name="Detail" component={DetailPage} />
-        </Stack.Navigator>
-    );
-};
-
 // Update the Test5 component to use ExploreStack
 export function Test5() {
+
+    const Profile = () => {
+        return (
+            <View style={styles.container}>
+                <Text>Profile</Text>
+            </View>
+        )
+    }
+
+    const ExploreStack = ({route}) => {
+        const {data} = route.params
+        return (
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="ExploreMain" component={Explore} initialParams={{data}} />
+                <Stack.Screen name="Detail" component={DetailPage} />
+            </Stack.Navigator>
+        );
+    };
+
+    const Explore = ({route}) => {
+
+        const {data} = route.params
+
+        const [activeScreen, setActiveScreen] = useState(screens[0]);
+        const [isMapView, setIsMapView] = useState(true);
+
+        useEffect(()=>{
+            console.log("Data passed:", data)
+        },[])
+
+        return (
+            <View style={styles.container}>
+                <SearchBar />
+                <InterestsGroups activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
+                <View style={styles.mapContainer}>
+                    {/* <MyMapComponent
+                        activeScreen={activeScreen}
+                        onViewToggleChange={setIsMapView}
+                    />
+                    {isMapView && <Card />} */
+
+                    }
+                    <MyMapComponent2 mapData = {null}/>
+                </View>
+            </View>
+        );
+    };
+
+    const [newdata, setNewData] = useState(null);
+
+    useEffect(() => {
+        const testing = async () => {
+            const data = await ReadData();
+            setNewData(data);
+        }
+        testing();
+    }, [])
+
+    if (!newdata) {
+        return (
+            <View>
+                <Text>Loading...</Text>
+            </View>
+        )
+    }
+
     return (
         <NavigationContainer>
             <Tabs.Navigator screenOptions={{
@@ -296,7 +283,7 @@ export function Test5() {
                 tabBarStyle: { backgroundColor: "white", height: 65, paddingVertical: "auto" },
                 tabBarIconStyle: { marginVertical: "auto" }
             }}>
-                <Tabs.Screen name="Explore" component={ExploreStack} options={{
+                <Tabs.Screen name="Explore" component={ExploreStack} initialParams={{ data: newdata }} options={{
                     tabBarIcon: ({ focused, color, size }) => (
                         <Icon name={focused ? "location" : "location"} color={color} type="octicon" size={24} />
                     )
@@ -306,7 +293,7 @@ export function Test5() {
                         <Icon name={focused ? "heart-fill" : "heart"} color={color} type="octicon" size={24} />
                     )
                 }} />
-                <Tabs.Screen name="History" component={History} options={{
+                <Tabs.Screen name="History" component={History} initialParams={{ data: newdata }} options={{
                     tabBarIcon: ({ focused, color, size }) => (
                         <Icon name={focused ? "history" : "history"} color={color} type="octicon" size={24} />
                     )

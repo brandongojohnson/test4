@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 const Card = ({ title, description, isMapView }) => {
   const navigation = useNavigation();
   
-  if (!isMapView) return null; // Don't show card in list view
+  // if (!isMapView) return null; // Don't show card in list view
 
   const handlePress = () => {
     navigation.navigate('Detail', {

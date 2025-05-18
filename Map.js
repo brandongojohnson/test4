@@ -1,5 +1,5 @@
 import { GoogleMap, LoadScript, Marker, OverlayView } from '@react-google-maps/api';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, Image, Text, TouchableOpacity, FlatList } from 'react-native';
 import { Icon } from '@rneui/themed';
 
@@ -212,20 +212,25 @@ const ViewToggle = ({ isMapView, onToggle }) => {
     );
 };
 
-export function MyMapComponent({activeScreen}) {
+export function MyMapComponent({activeScreen, onViewToggleChange}) {
     const [selectedMarker, setSelectedMarker] = useState(null);
     const [isMapView, setIsMapView] = useState(true);
+    
+    // Notify parent component when view changes
+    const toggleView = useCallback(() => {
+        const newView = !isMapView;
+        setIsMapView(newView);
+        if (onViewToggleChange) {
+            onViewToggleChange(newView);
+        }
+    }, [isMapView, onViewToggleChange]);
     
     const currentMarkers = useMemo(() => {
         return Test[activeScreen] || [];
     }, [activeScreen]);
 
     const mapOptions = useMemo(() => ({
-        disableDefaultUI: false,
-        zoomControl: true,
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: false,
+        disableDefaultUI: true, // Hide all controls
         styles: [
             {
                 featureType: "poi",
@@ -285,7 +290,7 @@ export function MyMapComponent({activeScreen}) {
         <View style={styles.container}>
             <ViewToggle 
                 isMapView={isMapView} 
-                onToggle={() => setIsMapView(!isMapView)} 
+                onToggle={toggleView} 
             />
             <View style={styles.contentContainer}>
                 {isMapView ? renderMap() : renderList()}
@@ -293,6 +298,12 @@ export function MyMapComponent({activeScreen}) {
         </View>
     );
 }
+
+// Make sure to export isMapView so Card component can use it
+export const useMapViewState = () => {
+    const [isMapView, setIsMapView] = useState(true);
+    return { isMapView, setIsMapView };
+};
 
 // Alternative: If you want to use an image instead of SVG
 const imageMarker = {
